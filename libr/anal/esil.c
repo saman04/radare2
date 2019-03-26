@@ -17,14 +17,6 @@ if (esil) {\
 	} \
 }
 
-/* internal helper functions */
-static void err(RAnalEsil *esil, const char *msg) {
-	if (esil->verbose) {
-		eprintf ("0x%08" PFMT64x " %s\n", esil->address, msg);
-	}
-}
-#define ERR(x) err(esil,x)
-
 /* Returns the number that has bits + 1 least significant bits set. */
 static inline ut64 genmask(int bits) {
 	ut64 m = UT64_MAX;
@@ -36,6 +28,8 @@ static inline ut64 genmask(int bits) {
 	}
 	return m;
 }
+
+#define ERR(x) if (esil->verbose) { eprintf ("%s\n", x); }
 
 static bool isnum(RAnalEsil *esil, const char *str, ut64 *num) {
 	if (!esil || !str) {
@@ -618,7 +612,9 @@ R_API int r_anal_esil_get_parm_size(RAnalEsil *esil, const char *str, ut64 *num,
 		}
 		return true;
 	default:
-		IFDBG eprintf ("Invalid arg (%s)\n", str);
+		if (esil->verbose) {
+			eprintf ("Invalid arg (%s)\n", str);
+		}
 		esil->parse_stop = 1;
 		break;
 	}
@@ -1102,7 +1098,9 @@ static int esil_lsreq(RAnalEsil *esil) {
 	if (dst && r_anal_esil_reg_read (esil, dst, &num, NULL)) {
 		if (src && r_anal_esil_get_parm (esil, src, &num2)) {
 			if (num2 > 63) {
-				eprintf ("Invalid shift at 0x%08"PFMT64x"\n", esil->address);
+				if (esil->verbose) {
+					eprintf ("Invalid shift at 0x%08"PFMT64x"\n", esil->address);
+				}
 				num2 = 63;
 			}
 			esil->old = num;
@@ -1152,17 +1150,22 @@ static int esil_asreq(RAnalEsil *esil) {
 					ut64 left_bits = 0;
 					int shift = regsize - 1;
 					if (shift < 0 || shift > regsize - 1) {
-						eprintf ("Invalid asreq shift of %d at 0x%"PFMT64x"\n", shift, esil->address);
+						if (esil->verbose) {
+							eprintf ("Invalid asreq shift of %d at 0x%"PFMT64x"\n", shift, esil->address);
+						}
 						shift = 0;
 					}
 					if (param_num > regsize - 1) {
-						// capstone bug?
-						eprintf ("Invalid asreq shift of %"PFMT64d" at 0x%"PFMT64x"\n", param_num, esil->address);
+						if (esil->verbose) {
+							eprintf ("Invalid asreq shift of %"PFMT64d" at 0x%"PFMT64x"\n", param_num, esil->address);
+						}
 						param_num = 30;
 					}
 					if (shift >= 63) {
-						// LL can't handle LShift of 63 or more
-						eprintf ("Invalid asreq shift of %d at 0x%08"PFMT64x"\n", shift, esil->address);
+						if (esil->verbose) {
+							// LL can't handle LShift of 63 or more
+							eprintf ("Invalid asreq shift of %d at 0x%08"PFMT64x"\n", shift, esil->address);
+						}
 					} else if (op_num & (1LL << shift)) {
 						left_bits = (1 << param_num) - 1;
 						left_bits <<= regsize - param_num;
@@ -1179,7 +1182,9 @@ static int esil_asreq(RAnalEsil *esil) {
 			// r_anal_esil_pushnum (esil, res);
 			ret = 1;
 		} else {
-			ERR ("esil_asr: empty stack");
+			if (esil->verbose) {
+				eprintf ("esil_asr: empty stack");
+			}
 		}
 	}
 	free (param);
@@ -2944,7 +2949,7 @@ repeat:
 			break;
 		}
 		if (wordi > 62) {
-			ERR ("Invalid esil string");
+			eprintf ("Error: Invalid ESIL string");
 			return -1;
 		}
 		dorunword = 0;
@@ -3041,7 +3046,7 @@ R_API int r_anal_esil_condition(RAnalEsil *esil, const char *str) {
 		}
 		free (popped);
 	} else {
-		ERR ("ESIL stack is empty");
+		eprintf ("Warning: Cannot pop because The ESIL stack is empty");
 		return -1;
 	}
 	return ret;
