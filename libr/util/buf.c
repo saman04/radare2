@@ -111,6 +111,7 @@ static ut64 remainingBytes(ut64 limit, ut64 length, ut64 offset) {
 	}
 	return R_MIN (limit, length - offset);
 }
+
 // ret copied length if successful, -1 if failed
 static int r_buf_cpy(RBuffer *b, ut64 addr, ut8 *dst, const ut8 *src, int len, int write) {
 	r_return_val_if_fail (b, 0);
