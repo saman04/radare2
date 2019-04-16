@@ -35,7 +35,7 @@ CS_TAR=
 CS_URL=$(GIT_PREFIX)github.com/aquynh/capstone.git
 CS_UPD=20190414
 ifeq ($(CS_NEXT),1)
-CS_TIP=22c4fc577d8bd72e779df2b1de13f7085d2b91a4
+CS_TIP=d7b4e936a67f9ae3c5b1fa73e7085573fa9838dc
 CS_BRA=next
 else
 CS_TIP=7090f081b17a5293a2c185a06513fede18065d3c
