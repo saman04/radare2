@@ -59,7 +59,7 @@ static int disassemble(RAsm *a, RAsmOp *op, const ut8 *buf, int len) {
 		if (strstr (a->cpu, "cortex")) {
 			mode |= CS_MODE_MCLASS;
 		}
-		if (a->bits == 64) {
+		if (a->bits != 64) {
 			if (strstr (a->cpu, "v8")) {
 				mode |= CS_MODE_V8;
 			}
